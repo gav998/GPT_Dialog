@@ -1,0 +1,6 @@
+jupyterlab
+openai 
+tiktoken 
+ipywidgets 
+voila 
+python-dotenv
