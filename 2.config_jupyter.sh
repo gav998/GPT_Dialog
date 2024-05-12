@@ -1,3 +1,4 @@
+
 #!/usr/bin/env bash
 
 # Получаем имя текущего пользователя
@@ -15,7 +16,12 @@ read -s PASSWORD
 # Активируем виртуальное окружение
 source "${SCRIPT_DIR}/venv/bin/activate"
 
-JUPYTER_PASSWORD_HASH=$(python -c "from jupyter_server.auth import passwd; print(passwd('$PASSWORD'))")
+if [[ -z "$PASSWORD" ]]; then
+    JUPYTER_START_CMD_ARGS="--NotebookApp.token=''"
+else
+    JUPYTER_PASSWORD_HASH=$(python -c "from jupyter_server.auth import passwd; print(passwd('$PASSWORD'))")
+    JUPYTER_START_CMD_ARGS="--NotebookApp.password='$JUPYTER_PASSWORD_HASH'"
+fi
 
 # Создаем сервис автозапуска JupyterLab 8888
 SERVICE_FILE="/etc/systemd/system/jupyterlab.service"
@@ -27,7 +33,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/bin/bash -c 'sleep 5 && source "${SCRIPT_DIR}/venv/bin/activate" && python -m jupyterlab --ip=0.0.0.0 --no-browser --NotebookApp.password='\''$JUPYTER_PASSWORD_HASH'\'
+ExecStart=/bin/bash -c "sleep 5 && source \"${SCRIPT_DIR}/venv/bin/activate\" && python -m jupyterlab --ip=0.0.0.0 --no-browser ${JUPYTER_START_CMD_ARGS}"
 WorkingDirectory=${SCRIPT_DIR}
 User=${USER_NAME}
 
